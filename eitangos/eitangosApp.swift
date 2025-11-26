@@ -14,7 +14,7 @@ struct eitangosApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainTabView()  // ← Changed from ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
     }

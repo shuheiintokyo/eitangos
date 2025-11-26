@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		0598B82C2ED42B14007B7243 /* Appwrite in Frameworks */ = {isa = PBXBuildFile; productRef = 0598B82B2ED42B14007B7243 /* Appwrite */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		0598B7E42ED3F302007B7243 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0598B82C2ED42B14007B7243 /* Appwrite in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = eitangos;
 			packageProductDependencies = (
+				0598B82B2ED42B14007B7243 /* Appwrite */,
 			);
 			productName = eitangos;
 			productReference = 0598B7D12ED3F2FF007B7243 /* eitangos.app */;
@@ -195,6 +201,9 @@
 			);
 			mainGroup = 0598B7C82ED3F2FF007B7243;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				0598B82A2ED42B14007B7243 /* XCRemoteSwiftPackageReference "sdk-for-apple" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 0598B7D22ED3F2FF007B7243 /* Products */;
 			projectDirPath = "";
@@ -578,6 +587,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		0598B82A2ED42B14007B7243 /* XCRemoteSwiftPackageReference "sdk-for-apple" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/appwrite/sdk-for-apple";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 13.4.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0598B82B2ED42B14007B7243 /* Appwrite */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0598B82A2ED42B14007B7243 /* XCRemoteSwiftPackageReference "sdk-for-apple" */;
+			productName = Appwrite;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 0598B7C92ED3F2FF007B7243 /* Project object */;
 }
