@@ -23,8 +23,6 @@ struct VocabularyData: Codable, Identifiable {
 class AppwriteService {
     private let client: Client
     private let databases: Databases
-    
-    // Replace these with your actual Appwrite configuration
     private let endpoint = "https://cloud.appwrite.io/v1"
     private let projectId = "6923b8ca002785502f73"
     private let databaseId = "6923f7f9000490f509e3"
@@ -41,10 +39,6 @@ class AppwriteService {
     /// Fetch vocabulary items from Appwrite cloud database
     func fetchVocabularyFromCloud() async throws -> [VocabularyData] {
         do {
-            print("🔍 Fetching from Appwrite...")
-            print("   Database ID: \(databaseId)")
-            print("   Collection ID: \(collectionId)")
-            
             let response = try await databases.listDocuments(
                 databaseId: databaseId,
                 collectionId: collectionId,
@@ -53,9 +47,6 @@ class AppwriteService {
                     Query.orderAsc("english")
                 ]
             )
-            
-            print("📊 Response received: \(response.documents.count) documents")
-            
             var vocabularyItems: [VocabularyData] = []
             
             for (index, document) in response.documents.enumerated() {
@@ -87,10 +78,6 @@ class AppwriteService {
                     japanese: cleanJapanese
                 )
                 vocabularyItems.append(vocab)
-                
-                if index < 5 {  // Only print first 5
-                    print("   ✅ \(index): \(cleanEnglish) → \(cleanJapanese)")
-                }
             }
             
             print("✅ Successfully parsed \(vocabularyItems.count) items")

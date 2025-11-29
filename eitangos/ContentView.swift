@@ -63,16 +63,11 @@ struct ContentView: View {
                 }
             }
             .navigationTitle("英単語帳")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addSampleItem) {
-                        Label("サンプル追加", systemImage: "plus")
-                    }
-                }
-            }
+//            .toolbar {
+//                ToolbarItem(placement: .navigationBarTrailing) {
+//                    EditButton()
+//                }
+//            }
             .alert("更新結果", isPresented: $showAlert) {
                 Button("OK", role: .cancel) { }
             } message: {
@@ -80,24 +75,7 @@ struct ContentView: View {
             }
         }
     }
-    
-    private func addSampleItem() {
-        withAnimation {
-            let newItem = VocabularyItem(context: viewContext)
-            newItem.id = UUID()
-            newItem.english = "sample"
-            newItem.japanese = "サンプル"
-            newItem.setValue(Date(), forKey: "createdAt")
-            
-            do {
-                try viewContext.save()
-            } catch {
-                let nsError = error as NSError
-                print("Error: \(nsError), \(nsError.userInfo)")
-            }
-        }
-    }
-    
+
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
             offsets.map { items[$0] }.forEach(viewContext.delete)
@@ -118,14 +96,11 @@ struct ContentView: View {
             do {
                 let vocabularyItems = try await appwriteService.fetchVocabularyFromCloud()
                 
-                print("📥 Fetched \(vocabularyItems.count) items from Appwrite")
-                
                 await MainActor.run {
                     var newCount = 0
                     var updatedCount = 0
                     
                     for vocabData in vocabularyItems {
-                        print("Processing: \(vocabData.english) → \(vocabData.japanese)")
                         
                         let fetchRequest: NSFetchRequest<VocabularyItem> = VocabularyItem.fetchRequest()
                         fetchRequest.predicate = NSPredicate(format: "english == %@", vocabData.english)
@@ -136,7 +111,6 @@ struct ContentView: View {
                             if let existingItem = results.first {
                                 existingItem.japanese = vocabData.japanese
                                 updatedCount += 1
-                                print("✏️ Updated: \(vocabData.english)")
                             } else {
                                 let newItem = VocabularyItem(context: viewContext)
                                 newItem.id = UUID()
@@ -144,7 +118,6 @@ struct ContentView: View {
                                 newItem.japanese = vocabData.japanese
                                 newItem.setValue(Date(), forKey: "createdAt")
                                 newCount += 1
-                                print("✅ Created: \(vocabData.english)")
                             }
                         } catch {
                             print("❌ Error checking existing item: \(error)")
@@ -190,10 +163,10 @@ struct VocabularyRowView: View {
                 .foregroundColor(.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
-            // Visual separator
-            Text("→")
-                .font(.system(size: 17))
-                .foregroundColor(.secondary)
+//            // Visual separator
+//            Text("→")
+//                .font(.system(size: 17))
+//                .foregroundColor(.secondary)
             
             // Japanese translation (same size and weight)
             Text(item.japanese ?? "")
@@ -202,11 +175,5 @@ struct VocabularyRowView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.vertical, 8)
-    }
-}
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
     }
 }

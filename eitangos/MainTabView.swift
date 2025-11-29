@@ -64,9 +64,9 @@ struct VocabularyListViewWithSync: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Stats Card
-                statsCard
-                    .padding()
+//                Stats Card
+//                statsCard
+//                    .padding()
                 
                 // Cloud sync button
                 HStack {
@@ -138,33 +138,33 @@ struct VocabularyListViewWithSync: View {
         }
     }
     
-    private var statsCard: some View {
-        HStack(spacing: 20) {
-            StatItem(icon: "book.fill", value: "\(items.count)", label: "総単語数")
-            
-            Divider()
-                .frame(height: 40)
-            
-            StatItem(icon: "chart.line.uptrend.xyaxis", value: "\(todayAdded)", label: "今日追加")
-            
-            Divider()
-                .frame(height: 40)
-            
-            StatItem(icon: "star.fill", value: "\(items.count)", label: "学習中")
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-    }
+//    private var statsCard: some View {
+//        HStack(spacing: 20) {
+//            StatItem(icon: "book.fill", value: "\(items.count)", label: "総単語数")
+//            
+//            Divider()
+//                .frame(height: 40)
+//            
+//            StatItem(icon: "chart.line.uptrend.xyaxis", value: "\(todayAdded)", label: "今日追加")
+//            
+//            Divider()
+//                .frame(height: 40)
+//            
+//            StatItem(icon: "star.fill", value: "\(items.count)", label: "学習中")
+//        }
+//        .padding()
+//        .background(Color(.systemGray6))
+//        .cornerRadius(12)
+//    }
     
-    private var todayAdded: Int {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        return items.filter { item in
-            guard let createdAt = item.value(forKey: "createdAt") as? Date else { return false }
-            return calendar.isDate(createdAt, inSameDayAs: today)
-        }.count
-    }
+//    private var todayAdded: Int {
+//        let calendar = Calendar.current
+//        let today = calendar.startOfDay(for: Date())
+//        return items.filter { item in
+//            guard let createdAt = item.value(forKey: "createdAt") as? Date else { return false }
+//            return calendar.isDate(createdAt, inSameDayAs: today)
+//        }.count
+//    }
     
     private var emptyStateView: some View {
         VStack(spacing: 20) {
