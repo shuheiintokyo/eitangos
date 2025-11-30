@@ -2,7 +2,7 @@
 //  MainTabView.swift
 //  eitangos
 //
-//  Updated version without audio, with 10-question limit and scoring
+//  Main tab container and vocabulary list
 //
 
 import SwiftUI
@@ -19,12 +19,12 @@ struct MainTabView: View {
                     Label("リスト", systemImage: "list.bullet")
                 }
             
-            EnhancedQuickTestView()
+            QuickTestView()
                 .tabItem {
                     Label("テスト", systemImage: "brain.head.profile")
                 }
             
-            EnhancedSettingsView()
+            SettingsView()
                 .tabItem {
                     Label("設定", systemImage: "gearshape")
                 }
@@ -32,7 +32,7 @@ struct MainTabView: View {
     }
 }
 
-// MARK: - Enhanced List View with Stats
+// MARK: - Vocabulary List View with Cloud Sync
 struct VocabularyListViewWithSync: View {
     @Environment(\.managedObjectContext) private var viewContext
     
@@ -61,12 +61,18 @@ struct VocabularyListViewWithSync: View {
         }
     }
     
+    var todayAdded: Int {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        return items.filter { item in
+            guard let createdAt = item.value(forKey: "createdAt") as? Date else { return false }
+            return calendar.isDate(createdAt, inSameDayAs: today)
+        }.count
+    }
+    
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-//                Stats Card
-//                statsCard
-//                    .padding()
                 
                 // Cloud sync button
                 HStack {
@@ -121,11 +127,6 @@ struct VocabularyListViewWithSync: View {
                 }
             }
             .navigationTitle("英単語帳")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-            }
             .searchable(text: $searchText, prompt: "単語を検索")
             .alert("更新結果", isPresented: $showAlert) {
                 Button("OK", role: .cancel) { }
@@ -137,34 +138,6 @@ struct VocabularyListViewWithSync: View {
             }
         }
     }
-    
-//    private var statsCard: some View {
-//        HStack(spacing: 20) {
-//            StatItem(icon: "book.fill", value: "\(items.count)", label: "総単語数")
-//            
-//            Divider()
-//                .frame(height: 40)
-//            
-//            StatItem(icon: "chart.line.uptrend.xyaxis", value: "\(todayAdded)", label: "今日追加")
-//            
-//            Divider()
-//                .frame(height: 40)
-//            
-//            StatItem(icon: "star.fill", value: "\(items.count)", label: "学習中")
-//        }
-//        .padding()
-//        .background(Color(.systemGray6))
-//        .cornerRadius(12)
-//    }
-    
-//    private var todayAdded: Int {
-//        let calendar = Calendar.current
-//        let today = calendar.startOfDay(for: Date())
-//        return items.filter { item in
-//            guard let createdAt = item.value(forKey: "createdAt") as? Date else { return false }
-//            return calendar.isDate(createdAt, inSameDayAs: today)
-//        }.count
-//    }
     
     private var emptyStateView: some View {
         VStack(spacing: 20) {
@@ -283,438 +256,25 @@ struct StatItem: View {
     }
 }
 
-//// MARK: - Vocabulary Row (without audio)
-//struct VocabularyRow: View {
-//    let item: VocabularyItem
-//    
-//    var body: some View {
-//        HStack(spacing: 12) {
-//            // Words
-//            HStack(spacing: 12) {
-//                Text(item.english ?? "")
-//                    .font(.system(size: 17, weight: .medium))
-//                    .foregroundColor(.primary)
-//                    .frame(maxWidth: .infinity, alignment: .leading)
-//                
-//                Text("→")
-//                    .font(.system(size: 17))
-//                    .foregroundColor(.secondary)
-//                
-//                Text(item.japanese ?? "")
-//                    .font(.system(size: 17, weight: .medium))
-//                    .foregroundColor(.primary)
-//                    .frame(maxWidth: .infinity, alignment: .leading)
-//            }
-//        }
-//        .padding(.vertical, 8)
-//    }
-//}
-
-// MARK: - Enhanced Quick Test View (10 questions, with scoring)
-struct EnhancedQuickTestView: View {
-    @Environment(\.managedObjectContext) private var viewContext
-    
-    @FetchRequest(
-        entity: VocabularyItem.entity(),
-        sortDescriptors: [NSSortDescriptor(keyPath: \VocabularyItem.english, ascending: true)]
-    )
-    private var allItems: FetchedResults<VocabularyItem>
-    
-    @State private var currentIndex = 0
-    @State private var isAnswerRevealed = false
-    @State private var shuffledItems: [VocabularyItem] = []
-    @State private var correctCount = 0
-    @State private var showResults = false
-    
-    private let maxQuestions = 10
-    
-    var currentItem: VocabularyItem? {
-        guard shuffledItems.indices.contains(currentIndex) else { return nil }
-        return shuffledItems[currentIndex]
-    }
-    
-    var progress: Double {
-        guard !shuffledItems.isEmpty else { return 0 }
-        return Double(currentIndex + 1) / Double(min(shuffledItems.count, maxQuestions))
-    }
-    
-    var totalQuestions: Int {
-        min(shuffledItems.count, maxQuestions)
-    }
+// MARK: - Vocabulary Row (NO AUDIO)
+struct VocabularyRow: View {
+    let item: VocabularyItem
     
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                if shuffledItems.isEmpty {
-                    emptyStateView
-                } else if showResults {
-                    resultsView
-                } else {
-                    // Progress Section
-                    VStack(spacing: 12) {
-                        HStack {
-                            Text("問題 \(currentIndex + 1) / \(totalQuestions)")
-                                .font(.headline)
-                            
-                            Spacer()
-                            
-                            HStack(spacing: 4) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
-                                Text("\(correctCount)")
-                                    .font(.subheadline.bold())
-                            }
-                        }
-                        
-                        ProgressView(value: progress)
-                            .tint(.blue)
-                    }
-                    .padding()
-                    .background(Color(.systemBackground))
-                    
-                    Spacer()
-                    
-                    if let item = currentItem {
-                        testCards(for: item)
-                    }
-                    
-                    Spacer()
-                    
-                    // Action Buttons
-                    actionButtons
-                        .padding()
-                }
-            }
-            .navigationTitle("クイックテスト")
-            .onAppear {
-                if shuffledItems.isEmpty {
-                    startNewTest()
-                }
-            }
-        }
-    }
-    
-    private var emptyStateView: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "book.closed")
-                .font(.system(size: 60))
-                .foregroundColor(.gray)
-            
-            Text("テストする語彙がありません")
-                .font(.title2.bold())
-            
-            Text("まずリストタブで語彙を追加してください")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-    
-    private var resultsView: some View {
-        VStack(spacing: 30) {
-            Spacer()
-            
-            // Trophy or result icon
-            Image(systemName: correctCount == totalQuestions ? "trophy.fill" : "star.fill")
-                .font(.system(size: 80))
-                .foregroundColor(correctCount == totalQuestions ? .yellow : .blue)
-                .padding(.bottom, 20)
-            
-            Text("テスト完了！")
-                .font(.system(size: 32, weight: .bold))
-            
-            // Score display
-            VStack(spacing: 10) {
-                Text("あなたのスコア")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                
-                HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    Text("\(correctCount)")
-                        .font(.system(size: 60, weight: .bold))
-                        .foregroundColor(scoreColor)
-                    
-                    Text("/ \(totalQuestions)")
-                        .font(.system(size: 30, weight: .medium))
-                        .foregroundColor(.secondary)
-                }
-            }
-            .padding(.vertical, 20)
-            
-            // Percentage
-            Text("\(Int(Double(correctCount) / Double(totalQuestions) * 100))%")
-                .font(.system(size: 40, weight: .semibold))
-                .foregroundColor(scoreColor)
-            
-            // Message
-            Text(resultMessage)
-                .font(.title3)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
-                .padding(.top, 10)
-            
-            Spacer()
-            
-            // Restart button
-            Button(action: {
-                startNewTest()
-            }) {
-                HStack {
-                    Image(systemName: "arrow.clockwise")
-                    Text("もう一度テスト")
-                }
-                .font(.headline)
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.blue)
-                .cornerRadius(12)
-            }
-            .padding(.horizontal, 40)
-            .padding(.bottom, 40)
-        }
-    }
-    
-    private var scoreColor: Color {
-        let percentage = Double(correctCount) / Double(totalQuestions)
-        if percentage >= 0.9 {
-            return .green
-        } else if percentage >= 0.7 {
-            return .blue
-        } else if percentage >= 0.5 {
-            return .orange
-        } else {
-            return .red
-        }
-    }
-    
-    private var resultMessage: String {
-        let percentage = Double(correctCount) / Double(totalQuestions)
-        if percentage == 1.0 {
-            return "完璧です！🎉"
-        } else if percentage >= 0.9 {
-            return "素晴らしい！"
-        } else if percentage >= 0.7 {
-            return "よくできました！"
-        } else if percentage >= 0.5 {
-            return "もう少し頑張りましょう"
-        } else {
-            return "復習が必要です"
-        }
-    }
-    
-    private func testCards(for item: VocabularyItem) -> some View {
-        VStack(spacing: 32) {
-            // Question Card
-            VStack(spacing: 16) {
-                Text("英語は？")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Text(item.english ?? "")
-                    .font(.system(size: 44, weight: .bold))
-                    .multilineTextAlignment(.center)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 60)
-            .background(
-                LinearGradient(
-                    colors: [Color.blue.opacity(0.1), Color.blue.opacity(0.05)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .cornerRadius(20)
-            .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 5)
-            
-            // Answer Card
-            VStack(spacing: 16) {
-                if isAnswerRevealed {
-                    VStack(spacing: 12) {
-                        Text("日本語")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        Text(item.japanese ?? "")
-                            .font(.system(size: 40, weight: .bold))
-                            .multilineTextAlignment(.center)
-                            .foregroundColor(.green)
-                        
-                        // Correct/Wrong buttons
-                        HStack(spacing: 16) {
-                            Button(action: {
-                                markCorrect()
-                            }) {
-                                Label("正解", systemImage: "checkmark.circle.fill")
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.green)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(12)
-                            }
-                            
-                            Button(action: {
-                                nextQuestion()
-                            }) {
-                                Label("不正解", systemImage: "xmark.circle.fill")
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.red)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(12)
-                            }
-                        }
-                        .padding(.top, 8)
-                    }
-                } else {
-                    Text("タップして答えを表示")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 60)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .frame(minHeight: 200)
-            .background(Color(.systemGray6))
-            .cornerRadius(20)
-            .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 5)
-            .onTapGesture {
-                withAnimation(.spring()) {
-                    isAnswerRevealed = true
-                }
-            }
-        }
-        .padding()
-    }
-    
-    private var actionButtons: some View {
         HStack(spacing: 12) {
-            Button(action: previousQuestion) {
-                Label("戻る", systemImage: "chevron.left")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-            }
-            .buttonStyle(.bordered)
-            .disabled(currentIndex == 0)
+            // English word
+            Text(item.english ?? "")
+                .font(.system(size: 17, weight: .medium))
+                .foregroundColor(.primary)
+                .frame(maxWidth: .infinity, alignment: .center)
             
-            Button(action: nextQuestion) {
-                Label("次へ", systemImage: "chevron.right")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-            }
-            .buttonStyle(.borderedProminent)
-            .disabled(!isAnswerRevealed)
+            // Japanese translation
+            Text(item.japanese ?? "")
+                .font(.system(size: 17, weight: .medium))
+                .foregroundColor(.primary)
+                .frame(maxWidth: .infinity, alignment: .center)
         }
-    }
-    
-    private func startNewTest() {
-        // Take only first 10 items (or all if less than 10)
-        let allItemsArray = Array(allItems).shuffled()
-        shuffledItems = Array(allItemsArray.prefix(maxQuestions))
-        currentIndex = 0
-        correctCount = 0
-        isAnswerRevealed = false
-        showResults = false
-    }
-    
-    private func markCorrect() {
-        correctCount += 1
-        nextQuestion()
-    }
-    
-    private func nextQuestion() {
-        withAnimation {
-            if currentIndex < totalQuestions - 1 {
-                currentIndex += 1
-                isAnswerRevealed = false
-            } else {
-                // Show results
-                showResults = true
-            }
-        }
-    }
-    
-    private func previousQuestion() {
-        withAnimation {
-            if currentIndex > 0 {
-                currentIndex -= 1
-                isAnswerRevealed = false
-            }
-        }
-    }
-}
-
-// MARK: - Enhanced Settings View (without audio settings)
-struct EnhancedSettingsView: View {
-    @State private var showJapaneseFirst = false
-    
-    var body: some View {
-        NavigationStack {
-            List {
-                Section(header: Text("学習設定")) {
-                    Toggle(isOn: $showJapaneseFirst) {
-                        HStack {
-                            Image(systemName: "arrow.left.arrow.right")
-                                .foregroundColor(.blue)
-                            Text("日本語を最初に表示")
-                        }
-                    }
-                }
-                
-                Section(header: Text("アプリ情報")) {
-                    HStack {
-                        Text("アプリバージョン")
-                        Spacer()
-                        Text("1.0.0")
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    NavigationLink(destination: AboutView()) {
-                        HStack {
-                            Image(systemName: "info.circle")
-                                .foregroundColor(.blue)
-                            Text("このアプリについて")
-                        }
-                    }
-                }
-            }
-            .navigationTitle("設定")
-        }
-    }
-}
-
-// MARK: - About View
-struct AboutView: View {
-    var body: some View {
-        VStack(spacing: 16) {
-            VStack(spacing: 8) {
-                Text("EITANGOS")
-                    .font(.title)
-                    .fontWeight(.bold)
-                
-                Text("英単語ズ")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-            }
-            .padding(.top, 32)
-            
-            Divider()
-                .padding(.vertical)
-            
-            VStack(alignment: .leading, spacing: 12) {
-                Text("アプリについて")
-                    .font(.headline)
-                
-                Text("EITANGOSは、効率的に英単語を学習するためのシンプルで使いやすいアプリです。リスト表示、クイックテスト、設定機能を備えています。")
-                    .foregroundColor(.secondary)
-                    .lineLimit(nil)
-            }
-            .padding()
-            
-            Spacer()
-        }
-        .navigationTitle("このアプリについて")
-        .navigationBarTitleDisplayMode(.inline)
+        .padding(.vertical, 8)
+        .contentShape(Rectangle())
     }
 }
